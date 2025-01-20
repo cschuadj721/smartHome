@@ -5,6 +5,10 @@
   <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
   <title>Smart Environment Control</title>
 
+    <!-- CSRF token in meta tag -->
+  <meta name="csrf-token" content="{{ csrf_token }}">
+
+
   <!-- Google Fonts -->
   <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet"/>
 
@@ -16,6 +20,7 @@
 
   <!-- jQuery UI CSS (for draggable) -->
   <link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css"/>
+
 
   <style>
     body {
@@ -156,10 +161,14 @@
         <div class="card control-panel">
           <div class="card-body">
             <h4 class="card-title">원격 제어</h4>
-            <button class="btn btn-success btn-lg">에어컨 ON/OFF</button>
-            <button class="btn btn-danger btn-lg">거실등 ON/OFF</button>
-            <button class="btn btn-warning btn-lg">현관문 잠금/해제</button>
-            <button class="btn btn-info btn-lg">보일러 ON/OFF</button>
+<!--            <button class="btn btn-success btn-lg">에어컨 ON/OFF</button>-->
+<!--            <button class="btn btn-danger btn-lg">거실등 ON/OFF</button>-->
+<!--            <button class="btn btn-warning btn-lg">현관문 잠금/해제</button>-->
+<!--            <button class="btn btn-info btn-lg">보일러 ON/OFF</button>-->
+                <button id="acToggle" class="btn btn-success btn-lg">에어컨 ON/OFF</button>
+                <button id="lightToggle" class="btn btn-danger btn-lg">거실등 ON/OFF</button>
+                <button id="lockToggle" class="btn btn-warning btn-lg">현관문 잠금/해제</button>
+                <button id="boilerToggle" class="btn btn-info btn-lg">보일러 ON/OFF</button>
           </div>
         </div>
       </div>
@@ -334,6 +343,103 @@
 
     // Keep them aligned initially
     $('#humidLine').css('top', $('#humidHandle').position().top + 'px');
+
+   // 1) Track local states:
+    //    (You can initialize them based on real db values if you like.)
+    let acOn = false;
+    let lightOn = false;
+    let locked = true;      // assume door is locked initially
+    let boilerOn = false;
+
+
+
+
+    // 3) Each toggle button triggers a fetch POST to /update_actuator with JSON data
+    // For toggling the AC (fan)
+function toggleAC() {
+  acOn = !acOn;  // Flip the local state
+  fetch('/update_actuator', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      fan: acOn ? 1 : 0
+    })
+  })
+  .then(response => response.json())
+  .then(data => {
+    if(data.status !== 'success') {
+      console.error('Error:', data.message);
+    }
+    // Do NOT change button text here; keep it static in HTML
+  });
+}
+
+function toggleLight() {
+  lightOn = !lightOn;
+  fetch('/update_actuator', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      main_led: lightOn ? 1 : 0
+    })
+  })
+  .then(response => response.json())
+  .then(data => {
+    if(data.status !== 'success') {
+      console.error('Error:', data.message);
+    }
+  });
+}
+
+function toggleLock() {
+  locked = !locked;
+  fetch('/update_actuator', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      servo_motor: locked ? 0 : 1
+    })
+  })
+  .then(response => response.json())
+  .then(data => {
+    if(data.status !== 'success') {
+      console.error('Error:', data.message);
+    }
+  });
+}
+
+function toggleBoiler() {
+  boilerOn = !boilerOn;
+  fetch('/update_actuator', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      heater_led: boilerOn ? 1 : 0
+    })
+  })
+  .then(response => response.json())
+  .then(data => {
+    if(data.status !== 'success') {
+      console.error('Error:', data.message);
+    }
+  });
+}
+
+// Attach event listeners
+document.getElementById('acToggle').addEventListener('click', toggleAC);
+document.getElementById('lightToggle').addEventListener('click', toggleLight);
+document.getElementById('lockToggle').addEventListener('click', toggleLock);
+document.getElementById('boilerToggle').addEventListener('click', toggleBoiler);
+
+
   </script>
 </body>
 </html>

@@ -3,8 +3,8 @@ from django.urls import path
 from . import views
 
 urlpatterns = [
-    path('admin/', admin.site.urls),
     path('', views.index, name='index'),  # Main index page
+    path('update_actuator', views.update_actuator, name='update_actuator'),
     # path('toggle_emergency', views.toggle_emergency, name='toggle_emergency'),
     # path('move_up', views.move_up, name='move_up'),
     # path('move_down', views.move_down, name='move_down'),

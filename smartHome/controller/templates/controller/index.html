@@ -298,51 +298,78 @@
     }
 
     const chartHeight = 400;  // The .graph-container is 400px high
+const marginTop = 30;     // Set top margin (adjust as needed)
+const marginBottom = -130;  // Set bottom margin (adjust as needed)
 
-    // --- Temperature line/handle ---
-    $('#tempHandle').draggable({
-      axis: 'y',
-      containment: '.graph-container',
-      drag: function(event, ui) {
-        // Ensure the handle doesn't leave the container (0 <= y <= 400 - handleHeight).
-        const handleHeight = 30;
-        ui.position.top = clamp(ui.position.top, 0, chartHeight - handleHeight);
+// --- Temperature line/handle ---
+$('#tempHandle').draggable({
+  axis: 'y',
+  containment: [
+    0,                          // Left edge (no left margin needed)
+    marginTop,                  // Top margin
+    0,                          // Right edge (no right margin needed)
+    chartHeight - marginBottom  // Bottom margin
+  ], // This confines the handle within the graph area, including margins
+  drag: function(event, ui) {
+    // Ensure the handle stays within the defined containment area
+    const handleHeight = 30;
+    ui.position.top = clamp(ui.position.top, marginTop, chartHeight - marginBottom - handleHeight);
 
-        // Move line to the same Y
-        $('#tempLine').css('top', ui.position.top + 'px');
+    // Move line to the same Y position
+    $('#tempLine').css('top', ui.position.top + 'px');
 
-        // Convert pixel to temperature (roughly 0°C @ bottom to 40°C @ top)
-        const maxTemp = 40;
-        // We invert the scale so top=40, bottom=0
-        // lineY=0 => 40°C, lineY=400 => 0°C
-        const lineY = ui.position.top;
-        const tempValue = maxTemp - (lineY / chartHeight) * maxTemp;
-        console.log('Target Temperature: ' + tempValue.toFixed(1) + '°C');
-      }
-    });
+    // Convert pixel to temperature (roughly 0°C @ bottom to 40°C @ top)
+    const maxTemp = 40; // Maximum temperature value (Top = 40°C)
+    const minTemp = -33.8;  // Minimum temperature value (Bottom = 0°C)
 
-    // Keep them aligned initially
-    $('#tempLine').css('top', $('#tempHandle').position().top + 'px');
+    // Calculate the range of the graph that corresponds to the temperature scale
+    const graphRange = chartHeight - marginTop - marginBottom;
 
-    // --- Humidity line/handle ---
-    $('#humidHandle').draggable({
-      axis: 'y',
-      containment: '.graph-container',
-      drag: function(event, ui) {
-        const handleHeight = 30;
-        ui.position.top = clamp(ui.position.top, 0, chartHeight - handleHeight);
+    // Invert the scale, so top = 40°C, bottom = 0°C
+    const tempValue = maxTemp - ((ui.position.top - marginTop) / graphRange) * (maxTemp - minTemp);
+    console.log('Target Temperature: ' + tempValue.toFixed(1) + '°C');
 
-        $('#humidLine').css('top', ui.position.top + 'px');
+    // Send the updated temperature choice to the server
+    updateSensorChoice('temperature_choice', tempValue);
+  }
+});
 
-        const maxHum = 100;
-        const lineY = ui.position.top;
-        const humValue = maxHum - (lineY / chartHeight) * maxHum;
-        console.log('Target Humidity: ' + humValue.toFixed(1) + '%');
-      }
-    });
+// Keep the initial alignment of the temperature line and handle
+$('#tempLine').css('top', $('#tempHandle').position().top + 'px');
 
-    // Keep them aligned initially
-    $('#humidLine').css('top', $('#humidHandle').position().top + 'px');
+// --- Humidity line/handle ---
+$('#humidHandle').draggable({
+  axis: 'y',
+  containment: [
+    0,                          // Left edge (no left margin needed)
+    marginTop,                  // Top margin
+    0,                          // Right edge (no right margin needed)
+    chartHeight - marginBottom  // Bottom margin
+  ], // This confines the handle within the graph area, including margins
+  drag: function(event, ui) {
+    const handleHeight = 30;
+    ui.position.top = clamp(ui.position.top, marginTop, chartHeight - marginBottom - handleHeight);
+
+    $('#humidLine').css('top', ui.position.top + 'px');
+
+    const maxHum = 100; // Maximum humidity value (Top = 100%)
+    const minHum = -84.75;   // Minimum humidity value (Bottom = 0%)
+
+    // Calculate the range of the graph that corresponds to the humidity scale
+    const graphRange = chartHeight - marginTop - marginBottom;
+
+    // Invert the scale, so top = 100%, bottom = 0%
+    const humValue = maxHum - ((ui.position.top - marginTop) / graphRange) * (maxHum - minHum);
+    console.log('Target Humidity: ' + humValue.toFixed(1) + '%');
+
+    // Send the updated humidity choice to the server
+    updateSensorChoice('humidity_choice', humValue);
+  }
+});
+
+// Keep the initial alignment of the humidity line and handle
+$('#humidLine').css('top', $('#humidHandle').position().top + 'px');
+
 
    // 1) Track local states:
     //    (You can initialize them based on real db values if you like.)
@@ -373,6 +400,27 @@ function toggleAC() {
       console.error('Error:', data.message);
     }
     // Do NOT change button text here; keep it static in HTML
+  });
+}
+
+
+// Helper function to send the updated sensor choice to the server via AJAX
+function updateSensorChoice(field, value) {
+  fetch('/update_sensor_choice', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'X-CSRFToken': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+    },
+    body: JSON.stringify({
+      [field]: value
+    })
+  })
+  .then(response => response.json())
+  .then(data => {
+    if(data.status !== 'success') {
+      console.error('Error:', data.message);
+    }
   });
 }
 

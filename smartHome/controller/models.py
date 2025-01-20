@@ -13,6 +13,15 @@ class SensorData(models.Model):
     def __str__(self):
         return f"SensorData at {self.timestamp} - Temp: {self.temperature}, Humidity: {self.humidity}, Brightness: {self.brightness}"
 
+class SensorDataChoices(models.Model):
+    temperature_choice = models.FloatField(default=0.0)  # Preferred temperature value
+    humidity_choice = models.FloatField(default=0.0)  # Preferred humidity value
+    brightness_choice = models.FloatField(default=0.0)  # Preferred brightness value
+
+    def __str__(self):
+        return f"Preferred Settings - Temp: {self.temperature_choice}, Humidity: {self.humidity_choice}, Brightness: {self.brightness_choice}"
+
+
 class ActuatorControl(models.Model):
     MAIN_LED_CHOICES = [(0, 'Off'), (1, 'On')]
     HEATER_LED_CHOICES = [(0, 'Off'), (1, 'On')]

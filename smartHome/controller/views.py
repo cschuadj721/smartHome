@@ -4,6 +4,8 @@ from django.shortcuts import render
 from django.views.decorators.csrf import csrf_exempt
 from .models import SensorData, ActuatorControl, ThresholdSettings, SensorDataChoices
 
+
+
 @csrf_exempt
 def index(request):
     # Get the latest sensor data
@@ -22,6 +24,34 @@ def index(request):
     }
     return render(request, 'controller/index.html', context)
 
+
+def get_last_600_sensor_data(request):
+    # Fetch the last 600 sensor data entries
+    sensor_data = SensorData.objects.all().order_by('-timestamp')[:600]
+
+    # Prepare the data to send back to the frontend
+    data = {
+        'labels': [i for i in range(len(sensor_data))],
+        'temperature': [entry.temperature for entry in sensor_data],
+        'humidity': [entry.humidity for entry in sensor_data],
+    }
+
+    return JsonResponse(data)
+
+def get_latest_sensor_data(request):
+    # Fetch the latest sensor data entry
+    latest_data = SensorData.objects.order_by('-timestamp').first()
+
+    # Return the latest data as JSON
+    if latest_data:
+        data = {
+            'temperature': latest_data.temperature,
+            'humidity': latest_data.humidity,
+            'timestamp': latest_data.timestamp.isoformat(),  # You might need this if you want to display the timestamp
+        }
+        return JsonResponse(data)
+    else:
+        return JsonResponse({'status': 'failure', 'message': 'No sensor data available'}, status=400)
 
 @csrf_exempt
 def update_actuator(request):

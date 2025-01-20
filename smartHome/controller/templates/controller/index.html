@@ -194,97 +194,125 @@
     ////////////////////////////////////////////////////////////////////////////
     // 1. Setup Chart.js with two Y-axes (temp / humidity) using numeric x-axis
     ////////////////////////////////////////////////////////////////////////////
-    let xIndex = 0; // We'll increment this every data update
     const ctx = document.getElementById('realTimeGraph').getContext('2d');
+    let xIndex = 600;  // Start at 600 to simulate the last 5 minutes (600 x 0.5s = 5 minutes)
 
+    // Chart.js initial setup
     const realTimeGraph = new Chart(ctx, {
-      type: 'line',
-      data: {
-        labels: [],
-        datasets: [
-          {
-            label: 'Temperature (°C)',
-            yAxisID: 'tempAxis',
-            borderColor: 'rgb(255, 99, 132)',
-            backgroundColor: 'rgba(255, 99, 132, 0.2)',
-            data: [],
-            fill: true
-          },
-          {
-            label: 'Humidity (%)',
-            yAxisID: 'humidAxis',
-            borderColor: 'rgb(54, 162, 235)',
-            backgroundColor: 'rgba(54, 162, 235, 0.2)',
-            data: [],
-            fill: true
-          }
-        ]
-      },
-      options: {
-        responsive: true,
-        animation: false,
-        scales: {
-          x: {
-            type: 'linear',
-            position: 'bottom',
-            min: 0,
-            max: 600, // 600 x 0.5s = 300s = 5 minutes
-            title: {
-              display: true,
-              text: 'Time (0.5s steps)'
+        type: 'line',
+        data: {
+            labels: [],  // Empty initially, will populate with the last 600 timestamps
+            datasets: [
+                {
+                    label: 'Temperature (°C)',
+                    yAxisID: 'tempAxis',
+                    borderColor: 'rgb(255, 99, 132)',
+                    backgroundColor: 'rgba(255, 99, 132, 0.2)',
+                    data: [],
+                    fill: true
+                },
+                {
+                    label: 'Humidity (%)',
+                    yAxisID: 'humidAxis',
+                    borderColor: 'rgb(54, 162, 235)',
+                    backgroundColor: 'rgba(54, 162, 235, 0.2)',
+                    data: [],
+                    fill: true
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            animation: false,
+            scales: {
+                x: {
+                    type: 'linear',
+                    position: 'bottom',
+                    min: 0,
+                    max: 600, // Display last 600 data points (5 minutes)
+                    title: {
+                        display: true,
+                        text: 'Time (0.5s steps)'
+                    }
+                },
+                tempAxis: {
+                    type: 'linear',
+                    position: 'left',
+                    min: 0,
+                    max: 40,
+                    title: {
+                        display: true,
+                        text: 'Temperature (°C)'
+                    }
+                },
+                humidAxis: {
+                    type: 'linear',
+                    position: 'right',
+                    min: 0,
+                    max: 100,
+                    title: {
+                        display: true,
+                        text: 'Humidity (%)'
+                    },
+                    grid: {
+                        drawOnChartArea: false
+                    }
+                }
             }
-          },
-          tempAxis: {
-            type: 'linear',
-            position: 'left',
-            min: 0,
-            max: 40,
-            title: {
-              display: true,
-              text: 'Temperature (°C)'
-            }
-          },
-          humidAxis: {
-            type: 'linear',
-            position: 'right',
-            min: 0,
-            max: 100,
-            title: {
-              display: true,
-              text: 'Humidity (%)'
-            },
-            grid: {
-              drawOnChartArea: false
-            }
-          }
         }
-      }
     });
 
+// Fetch the initial last 600 data points from the backend
+function updateLastGraph() {
+    fetch('/get_last_600_sensor_data')
+        .then(response => response.json())
+        .then(data => {
+            // Set the initial data points
+            realTimeGraph.data.labels = data.labels;
+            realTimeGraph.data.datasets[0].data = data.temperature;
+            realTimeGraph.data.datasets[1].data = data.humidity;
+            realTimeGraph.update();
+        });
+}
     ////////////////////////////////////////////////////////////////////////////
     // 2. Simulated real-time data update every 0.5 seconds
     ////////////////////////////////////////////////////////////////////////////
-    function updateGraph() {
-      // Random temperature (10 ~ 40), humidity (30 ~ 80)
-      const tempValue = Math.random() * 30 + 10;
-      const humidValue = Math.random() * 50 + 30;
+    // Function to update graph with the latest sensor data
+function updateGraph() {
+    // Fetch the latest sensor data
+    fetch('/get_latest_sensor_data')
+        .then(response => response.json())
+        .then(data => {
+            if (data.status === 'failure') {
+                console.error('Error fetching sensor data:', data.message);
+                return;
+            }
 
-      // Add data point
-      realTimeGraph.data.labels.push(xIndex);
-      realTimeGraph.data.datasets[0].data.push(tempValue);
-      realTimeGraph.data.datasets[1].data.push(humidValue);
+            const temperature = data.temperature;
+            const humidity = data.humidity;
 
-      // Keep only last 600 points (5 minutes at 0.5s each)
-      if (realTimeGraph.data.labels.length > 600) {
-        realTimeGraph.data.labels.shift();
-        realTimeGraph.data.datasets[0].data.shift();
-        realTimeGraph.data.datasets[1].data.shift();
-      }
+            // Shift the graph: Remove the oldest data point and add the new one to the left
+            if (realTimeGraph.data.labels.length >= 600) {
+                realTimeGraph.data.labels.shift(); // Remove the oldest time (label)
+                realTimeGraph.data.datasets[0].data.shift(); // Remove the oldest temperature
+                realTimeGraph.data.datasets[1].data.shift(); // Remove the oldest humidity
+            }
 
-      xIndex++;
-      realTimeGraph.update();
-    }
-    setInterval(updateGraph, 500); // 0.5 seconds
+            // Add new data to the left (unshift)
+            realTimeGraph.data.labels.unshift(xIndex);  // Add new label (time)
+            realTimeGraph.data.datasets[0].data.unshift(temperature);  // Add new temperature value
+            realTimeGraph.data.datasets[1].data.unshift(humidity);  // Add new humidity value
+
+            xIndex++; // Increment the time (xIndex)
+
+            // Update the chart
+            realTimeGraph.update();
+        })
+        .catch(error => {
+            console.error('Error:', error);
+        });
+}
+    setInterval(updateLastGraph, 5000); // 0.5 seconds
 
     ////////////////////////////////////////////////////////////////////////////
     // 3. Draggable Horizontal Lines

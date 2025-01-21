@@ -132,12 +132,16 @@ def update_sensor_choice(request):
             # Get or create the SensorDataChoices row (pk=1 means it's the only row)
             sensor_choices, created = SensorDataChoices.objects.get_or_create(pk=1)
 
+            # Function to round to the nearest 0.5
+            def round_to_half(value):
+                return round(value * 2) / 2
+
             # Check for each field and update only if it's provided
             if 'temperature_choice' in data:
-                sensor_choices.temperature_choice = data['temperature_choice']
+                sensor_choices.temperature_choice = round_to_half(data['temperature_choice'])
 
             if 'humidity_choice' in data:
-                sensor_choices.humidity_choice = data['humidity_choice']
+                sensor_choices.humidity_choice = round_to_half(data['humidity_choice'])
 
             if 'brightness_choice' in data:
                 sensor_choices.brightness_choice = data['brightness_choice']

@@ -367,7 +367,7 @@
 
     const chartHeight = 400;  // The .graph-container is 400px high
     const marginTop = 30;     // Set top margin (adjust as needed)
-    const marginBottom = -180;  // Set bottom margin (adjust as needed)
+    const marginBottom = -130;  // Set bottom margin (adjust as needed)
 
 // --- Temperature line/handle ---
 $('#tempHandle').draggable({
@@ -388,7 +388,7 @@ $('#tempHandle').draggable({
 
     // Convert pixel to temperature (roughly 0°C @ bottom to 40°C @ top)
     const maxTemp = 40; // Maximum temperature value (Top = 40°C)
-    const minTemp = -41;  // Minimum temperature value (Bottom = 0°C)
+    const minTemp = -34;  // Minimum temperature value (Bottom = 0°C)
 
     // Calculate the range of the graph that corresponds to the temperature scale
     const graphRange = chartHeight - marginTop - marginBottom;
@@ -421,7 +421,7 @@ $('#humidHandle').draggable({
     $('#humidLine').css('top', ui.position.top + 'px');
 
     const maxHum = 100; // Maximum humidity value (Top = 100%)
-    const minHum = -103;   // Minimum humidity value (Bottom = 0%)
+    const minHum = -84;   // Minimum humidity value (Bottom = 0%)
 
     // Calculate the range of the graph that corresponds to the humidity scale
     const graphRange = chartHeight - marginTop - marginBottom;

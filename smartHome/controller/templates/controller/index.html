@@ -139,7 +139,7 @@
       <div class="col-md-8 mb-4">
         <div class="card">
           <div class="card-body">
-            <h4 class="card-title">온도/습도 변화 (Last 5 minutes)</h4>
+            <h4 class="card-title">온도/습도 변화 (1시간)</h4>
             <div class="graph-container">
               <!-- Chart.js Canvas -->
               <canvas id="realTimeGraph"></canvas>
@@ -229,10 +229,10 @@
                     type: 'linear',
                     position: 'bottom',
                     min: 0,
-                    max: 600, // Display last 600 data points (5 minutes)
+                    max: 60, // Display last 600 data points (5 minutes)
                     title: {
                         display: true,
-                        text: 'Time (0.5s steps)'
+                        text: 'interval (1 minute steps)'
                     }
                 },
                 tempAxis: {
@@ -262,9 +262,9 @@
         }
     });
 
-// Fetch the initial last 600 data points from the backend
+// Fetch the initial last 60 data points from the backend
 function updateLastGraph() {
-    fetch('/get_last_600_sensor_data')
+    fetch('/get_last_60_sensor_data')
         .then(response => response.json())
         .then(data => {
             // Set the initial data points
@@ -292,7 +292,7 @@ function updateGraph() {
             const humidity = data.humidity;
 
             // Shift the graph: Remove the oldest data point and add the new one to the left
-            if (realTimeGraph.data.labels.length >= 600) {
+            if (realTimeGraph.data.labels.length >= 60) {
                 realTimeGraph.data.labels.shift(); // Remove the oldest time (label)
                 realTimeGraph.data.datasets[0].data.shift(); // Remove the oldest temperature
                 realTimeGraph.data.datasets[1].data.shift(); // Remove the oldest humidity
@@ -312,7 +312,7 @@ function updateGraph() {
             console.error('Error:', error);
         });
 }
-    setInterval(updateLastGraph, 5000); // 0.5 seconds
+    setInterval(updateLastGraph, 3000); // 1 minute update
 
     ////////////////////////////////////////////////////////////////////////////
     // 3. Draggable Horizontal Lines

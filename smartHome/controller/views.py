@@ -4,12 +4,10 @@ from django.shortcuts import render
 from django.views.decorators.csrf import csrf_exempt
 from .models import SensorData, ActuatorControl, ThresholdSettings, SensorDataChoices
 
-
-
 @csrf_exempt
 def index(request):
-    # Get the latest sensor data
-    sensor_data = SensorData.objects.order_by('-timestamp').first()
+    # Get the latest sensor data (we no longer have the timestamp field)
+    sensor_data = SensorData.objects.first()  # Get the first available entry
 
     # Get actuator control data
     actuator_control = ActuatorControl.objects.first()
@@ -25,9 +23,9 @@ def index(request):
     return render(request, 'controller/index.html', context)
 
 
-def get_last_600_sensor_data(request):
-    # Fetch the last 600 sensor data entries
-    sensor_data = SensorData.objects.all().order_by('-timestamp')[:600]
+def get_last_60_sensor_data(request):
+    # Fetch the last 600 sensor data entries (no longer ordered by timestamp)
+    sensor_data = SensorData.objects.all().order_by('-id')[:60]  # Using 'id' as a fallback for ordering
 
     # Prepare the data to send back to the frontend
     data = {
@@ -39,15 +37,14 @@ def get_last_600_sensor_data(request):
     return JsonResponse(data)
 
 def get_latest_sensor_data(request):
-    # Fetch the latest sensor data entry
-    latest_data = SensorData.objects.order_by('-timestamp').first()
+    # Fetch the latest sensor data entry (no longer ordered by timestamp)
+    latest_data = SensorData.objects.first()  # Get the first entry
 
     # Return the latest data as JSON
     if latest_data:
         data = {
             'temperature': latest_data.temperature,
             'humidity': latest_data.humidity,
-            'timestamp': latest_data.timestamp.isoformat(),  # You might need this if you want to display the timestamp
         }
         return JsonResponse(data)
     else:

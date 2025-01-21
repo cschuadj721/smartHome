@@ -2,7 +2,7 @@ import json
 from django.http import JsonResponse
 from django.shortcuts import render
 from django.views.decorators.csrf import csrf_exempt
-from .models import SensorData, ActuatorControl, ThresholdSettings, SensorDataChoices
+from .models import SensorData, ActuatorControl, ThresholdSettings, SensorDataChoices, ActuatorStatus
 
 @csrf_exempt
 def index(request):
@@ -22,6 +22,27 @@ def index(request):
     }
     return render(request, 'controller/index.html', context)
 
+
+def get_actuator_status(request):
+    try:
+        # Fetch the actuator control data (assuming there's only one row in the table)
+        actuator_status = ActuatorStatus.objects.first()
+
+        if not actuator_status:
+            return JsonResponse({'status': 'failure', 'message': 'No actuator control data found'}, status=404)
+
+        # Prepare data for the response based on the new model and field names
+        data = {
+            'acStatus': 'ON' if actuator_status.fan_status else 'OFF',
+            'lightStatus': 'ON' if actuator_status.main_led_status else 'OFF',
+            'lockStatus': 'LOCKED' if actuator_status.servo_motor_status == 0 else 'UNLOCKED',
+            'boilerStatus': 'ON' if actuator_status.heater_led_status else 'OFF'
+        }
+
+        return JsonResponse(data)
+
+    except Exception as e:
+        return JsonResponse({'status': 'failure', 'message': str(e)}, status=500)
 
 def get_last_60_sensor_data(request):
     # Fetch the last 600 sensor data entries (no longer ordered by timestamp)

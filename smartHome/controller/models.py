@@ -1,7 +1,7 @@
 from django.db import models
 
 class SensorData(models.Model):
-    timestamp = models.DateTimeField(auto_now_add=True)
+    # timestamp = models.DateTimeField(auto_now_add=True)  # Remove this line
     temperature = models.FloatField()
     humidity = models.FloatField()
     brightness = models.FloatField()
@@ -11,7 +11,8 @@ class SensorData(models.Model):
         db_table = 'controller_sensordata'  # Ensure this matches the table name in the database
 
     def __str__(self):
-        return f"SensorData at {self.timestamp} - Temp: {self.temperature}, Humidity: {self.humidity}, Brightness: {self.brightness}"
+        return f"SensorData - Temp: {self.temperature}, Humidity: {self.humidity}, Brightness: {self.brightness}"
+
 
 class SensorDataChoices(models.Model):
     temperature_choice = models.FloatField(default=0.0)  # Preferred temperature value

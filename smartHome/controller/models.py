@@ -25,15 +25,17 @@ class ActuatorControl(models.Model):
     HEATER_LED_CHOICES = [(0, 'Off'), (1, 'On')]
     FAN_CHOICES = [(0, 'Off'), (1, 'On')]
     SERVO_MOTOR_CHOICES = [(0, 'Locked'), (1, 'Unlocked')]
+    MAIN_LED_MODE_CHOICES = [(0, 'Normal'), (1, 'cinema'), (2, 'military')]
 
     main_led_choice = models.IntegerField(choices=MAIN_LED_CHOICES, default=0)
     heater_led_choice = models.IntegerField(choices=HEATER_LED_CHOICES, default=0)
     fan_choice = models.IntegerField(choices=FAN_CHOICES, default=0)
     servo_motor_choice = models.IntegerField(choices=SERVO_MOTOR_CHOICES, default=0)
+    main_led_mode_choice = models.IntegerField(choices=MAIN_LED_MODE_CHOICES, default=0)
 
 
     def __str__(self):
-        return f"ActuatorControl - Main LED: {self.main_led_choice}, Heater LED: {self.heater_led_choice}, Fan: {self.fan_choice}, Servo Motor: {self.servo_motor_choice}"
+        return f"ActuatorControl - Main LED: {self.main_led_choice}, Heater LED: {self.heater_led_choice}, Fan: {self.fan_choice}, Servo Motor: {self.servo_motor_choice}, Main LED Mode: {self.main_led_mode_choice}"
 
 class ActuatorStatus(models.Model):
 

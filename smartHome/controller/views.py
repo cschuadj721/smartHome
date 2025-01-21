@@ -80,6 +80,7 @@ def update_actuator(request):
         "heater_led": 0 or 1,
         "fan": 0 or 1,
         "servo_motor": 0 or 1
+        "main_led_mode": 0, 1, or 2 (for normal, cinema, or military modes)
       }
     and updates ONLY that field in the database.
     """
@@ -102,6 +103,10 @@ def update_actuator(request):
 
             if 'servo_motor' in data:
                 actuator_control.servo_motor_choice = data['servo_motor']
+
+            if 'main_led_mode' in data:
+                actuator_control.main_led_mode_choice = data['main_led_mode']
+
 
             # Save updates
             actuator_control.save()
@@ -134,6 +139,9 @@ def update_sensor_choice(request):
             if 'humidity_choice' in data:
                 sensor_choices.humidity_choice = data['humidity_choice']
 
+            if 'brightness_choice' in data:
+                sensor_choices.brightness_choice = data['brightness_choice']
+
             # Save the updated choices
             sensor_choices.save()
 
@@ -147,3 +155,41 @@ def update_sensor_choice(request):
             return JsonResponse({'status': 'failure', 'message': f'Error: {str(e)}'}, status=500)
 
     return JsonResponse({'status': 'failure', 'message': 'Invalid request method'}, status=400)
+
+@csrf_exempt  # Disable CSRF protection for this view if needed (use only if necessary)
+def update_brightness(request):
+    if request.method == 'POST':
+        try:
+            data = json.loads(request.body.decode('utf-8'))
+            brightness = data.get('brightness')  # Extract brightness value
+
+            # Update the actuator status with the new brightness value
+            actuator_status = ActuatorStatus.objects.first()  # Assuming one actuator status object
+            if actuator_status:
+                actuator_status.brightness = brightness  # Update brightness field
+                actuator_status.save()
+
+            return JsonResponse({'status': 'success', 'brightness': brightness})
+        except Exception as e:
+            return JsonResponse({'status': 'failure', 'message': str(e)}, status=500)
+
+    return JsonResponse({'status': 'failure', 'message': 'Invalid method'}, status=400)
+
+@csrf_exempt  # Disable CSRF protection for this view if needed (use only if necessary)
+def change_light_mode(request):
+    if request.method == 'POST':
+        try:
+            data = json.loads(request.body)  # Parse incoming JSON data
+            mode = data.get('mode')  # Extract the mode value (normal, cinema, military)
+
+            # Assuming you store mode in actuator status or handle it in another way
+            actuator_status = ActuatorStatus.objects.first()  # Assuming one actuator status object
+            if actuator_status:
+                actuator_status.light_mode = mode  # Update the light mode
+                actuator_status.save()
+
+            return JsonResponse({'status': 'success', 'mode': mode})
+        except Exception as e:
+            return JsonResponse({'status': 'failure', 'message': str(e)}, status=500)
+
+    return JsonResponse({'status': 'failure', 'message': 'Invalid method'}, status=400)

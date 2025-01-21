@@ -9,6 +9,8 @@ urlpatterns = [
     path('get_last_60_sensor_data', views.get_last_60_sensor_data, name='get_last_60_sensor_data'),
     path('get_latest_sensor_data', views.get_latest_sensor_data, name='get_latest_sensor_data'),
     path('get_actuator_status', views.get_actuator_status, name='get_actuator_status'),
+    path('update-brightness/', views.update_brightness, name='update_brightness'),
+    path('change-light-mode/', views.change_light_mode, name='change_light_mode'),
 
     # path('toggle_emergency', views.toggle_emergency, name='toggle_emergency'),
     # path('move_up', views.move_up, name='move_up'),

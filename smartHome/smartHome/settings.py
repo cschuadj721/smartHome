@@ -80,7 +80,7 @@ DATABASES = {
         'NAME': '',
         'USER': '',  # Replace with your actual DB user
         'PASSWORD': '',  # Replace with your actual DB password
-        'HOST': '141.164.46.113',  # Your DB IP
+        'HOST': '',  # Your DB IP
         'PORT': '5432',
     }
 }

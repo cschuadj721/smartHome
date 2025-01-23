@@ -80,8 +80,8 @@ WSGI_APPLICATION = 'smartHome.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': '',
-        'NAME': '',
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': 'smarthomedb2',
         'USER': '',  # Replace with your actual DB user
         'PASSWORD': '',  # Replace with your actual DB password
         'HOST': '',  # Your DB IP
